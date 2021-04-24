@@ -31,10 +31,17 @@
           <v-container>
             <v-row>
               <v-col cols="12" sm="12" md="12">
-                <v-text-field label="Source" v-model="source"></v-text-field>
+                <v-text-field 
+                  label="Source"
+                  :error-messages="sourceErrors"
+                  v-model.trim="source"
+                  ></v-text-field>
               </v-col>
               <v-col cols="12" sm="12" md="12">
-                <v-text-field label="Instractions" v-model="instractions"></v-text-field>
+                <v-text-field
+                label="Instractions"
+                :error-messages="instractionsErrors"
+                v-model="instractions"></v-text-field>
               </v-col>
               <v-col cols="12" sm="6">
                 <v-select 
@@ -46,16 +53,17 @@
               <v-col cols="12" sm="6"> 
                 <v-text-field
                   label="Budget (USD)"
+                  :error-messages="budgetErrors"
                   ref="budget"
-                  v-model="price"
+                  v-model="budget"
                   prefix="$"
                 ></v-text-field>
               </v-col>
               <v-col>
                 <v-radio-group 
-                  v-model="extraSelectedPrice"
+                  v-model="extraSelectedBudget"
                   column
-                  @change="changeExtraPrice">
+                  @change="changeExtraBudget">
                   <template v-slot:label>
                     <div><b>Please, select options (optional)</b></div>
                   </template>
@@ -108,9 +116,9 @@ export default {
     source: '',
     instractions:'',
     selectedCount: 1,
-    extraSelectedPrice: '',
-    price: 35,
-    extraPrice: 0
+    extraSelectedBudget: '',
+    budget: 35,
+    extraBudget: 0
   }),
   validations: {
     source: {
@@ -121,7 +129,7 @@ export default {
       required,
       maxLength: maxLength(30)
     },
-    price: {
+    budget: {
       required,
       numeric,
       between: between(5,500)
@@ -135,26 +143,52 @@ export default {
       }
       return list;
     },
-    totalPrice()  {
-      return this.price + this.extraPrice
+    totalbudget()  {
+      return this.budget + this.extraBudget
     },
     totalAmount()  {
-      return this.selectedCount * this.totalPrice
+      return this.selectedCount * this.totalbudget
+    },
+    sourceErrors () {
+      const errors = []
+      if (!this.$v.source.$dirty) return errors
+      !this.$v.source.url && errors.push('Source must be valid url.')
+      !this.$v.source.required && errors.push('Source is required.')
+      return errors
+    },
+    instractionsErrors () {
+      const errors = []
+      if (!this.$v.instractions.$dirty) return errors
+      !this.$v.instractions.maxLength && errors.push(`Instractions must be ${this.$v.instractions.$params.maxLength.max} character length.`)
+      !this.$v.instractions.required && errors.push('Instractions is required.')
+      return errors
+    },
+    budgetErrors () {
+      const errors = []
+      if (!this.$v.budget.$dirty) return errors
+      !this.$v.budget.numeric && errors.push('Budget must be a number')
+      !this.$v.budget.required && errors.push('Budget is required.')
+      !this.$v.budget.between && errors.push(`Budget mast be between ${this.$v.budget.$params.between.min} and ${this.$v.budget.$params.between.max}.`)
+      return errors
     },
   },
 
   methods: {
-    changeExtraPrice(e) {
+    changeExtraBudget(e) {
       if(e === '20%') {
-        this.extraPrice = this.price * 0.2
+        this.extraBudget = this.budget * 0.2
       } else if (e === '10%') {
-        this.extraPrice = this.price * 0.1
+        this.extraBudget = this.budget * 0.1
       } else {
-        this.extraPrice = 20
+        this.extraBudget = 20
       }
     },
     
     submitOrder() {
+      if(this.$v.$invalid) {
+        this.$v.$touch()
+        return
+      }
     
 
       this.shwowDialog = false
