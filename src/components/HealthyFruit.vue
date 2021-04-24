@@ -22,11 +22,11 @@
           <v-card-text>
           <h3>
             <v-btn color="blue" link href="#" small text>
-              healthytips.com
+              {{order.publication}}
             </v-btn>
           </h3>
           <h3 class="form-title">
-            <b>Enter the details of the article you want to order</b>
+            <b>{{order.description}}</b>
           </h3>
           <v-container>
             <v-row>
@@ -68,16 +68,11 @@
                     <div><b>Please, select options (optional)</b></div>
                   </template>
                   <v-radio
-                    label="Bilingual (add 20%)"
-                    value="20%"
-                  ></v-radio>
-                  <v-radio
-                    label="Proof-reading (add 10%)"
-                    value="10%"
-                  ></v-radio>
-                  <v-radio
-                    label="Copy-editing ($ 20)"
-                    value="20$"
+                    v-for="option in order.options"
+                    :key="`${option.extra_id}`"
+                    :id="`${option.id}`"
+                    :label="`${option.name} (add ${option.increase? option.increase + '%' : option.price + '$'})`"
+                    :value="`${option.increase? option.increase + '%' : option.price + '$'}`"
                   ></v-radio>
                 </v-radio-group>
               </v-col>
@@ -93,7 +88,7 @@
             <v-icon left>
               mdi-basket
             </v-icon>
-            Submit $ {{totalAmount}}
+            Submit $ {{totalAmount?  totalAmount :  ''}}
           </v-btn>
         </v-card-actions>
         </v-form>
@@ -117,7 +112,7 @@ export default {
     instractions:'',
     selectedCount: 1,
     extraSelectedBudget: '',
-    budget: 35,
+    budget: 0,
     extraBudget: 0
   }),
   validations: {
@@ -143,55 +138,60 @@ export default {
       }
       return list;
     },
-    totalbudget()  {
-      return this.budget + this.extraBudget
+    totalBudget()  {
+      return this.selectedCount * this.budget
     },
     totalAmount()  {
-      return this.selectedCount * this.totalbudget
+      return this.totalBudget + this.extraBudget
     },
     sourceErrors () {
-      const errors = []
-      if (!this.$v.source.$dirty) return errors
-      !this.$v.source.url && errors.push('Source must be valid url.')
-      !this.$v.source.required && errors.push('Source is required.')
+      const errors = [];
+      if (!this.$v.source.$dirty) return errors;
+      !this.$v.source.url && errors.push('Source must be valid url.');
+      !this.$v.source.required && errors.push('Source is required.');
       return errors
     },
     instractionsErrors () {
       const errors = []
-      if (!this.$v.instractions.$dirty) return errors
-      !this.$v.instractions.maxLength && errors.push(`Instractions must be ${this.$v.instractions.$params.maxLength.max} character length.`)
-      !this.$v.instractions.required && errors.push('Instractions is required.')
+      if (!this.$v.instractions.$dirty) return errors;
+      !this.$v.instractions.maxLength && errors.push(`Instractions must be ${this.$v.instractions.$params.maxLength.max} character length.`);
+      !this.$v.instractions.required && errors.push('Instractions is required.');
       return errors
     },
     budgetErrors () {
       const errors = []
-      if (!this.$v.budget.$dirty) return errors
-      !this.$v.budget.numeric && errors.push('Budget must be a number')
-      !this.$v.budget.required && errors.push('Budget is required.')
-      !this.$v.budget.between && errors.push(`Budget mast be between ${this.$v.budget.$params.between.min} and ${this.$v.budget.$params.between.max}.`)
-      return errors
+      if (!this.$v.budget.$dirty) return errors;
+      !this.$v.budget.numeric && errors.push('Budget must be a number');
+      !this.$v.budget.required && errors.push('Budget is required.');
+      !this.$v.budget.between && errors.push(`Budget mast be between ${this.$v.budget.$params.between.min} and ${this.$v.budget.$params.between.max}.`);
+      return errors;
     },
   },
 
   methods: {
     changeExtraBudget(e) {
       if(e === '20%') {
-        this.extraBudget = this.budget * 0.2
+        this.extraBudget = this.totalBudget * 0.2;
       } else if (e === '10%') {
-        this.extraBudget = this.budget * 0.1
+        this.extraBudget = this.totalBudget * 0.1;
       } else {
-        this.extraBudget = 20
+        this.extraBudget = 20;
       }
     },
     
     submitOrder() {
       if(this.$v.$invalid) {
-        this.$v.$touch()
-        return
+        this.$v.$touch();
+        return;
       }
-    
+      this.$v.$reset();
+      this.source = '';
+      this.instractions = '';
+      this.budget = 0;
+      this.selectedCount = 1;
 
-      this.shwowDialog = false
+      this.$emit('orderSubmited');
+      this.shwowDialog = false;
     }
   }
 };
