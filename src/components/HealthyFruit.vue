@@ -113,7 +113,8 @@ export default {
     selectedCount: 1,
     extraSelectedBudget: '',
     budget: 0,
-    extraBudget: 0
+    extraBudget: 0,
+    coeficent: 0,
   }),
   validations: {
     source: {
@@ -139,9 +140,11 @@ export default {
       return list;
     },
     totalBudget()  {
+      
       return this.selectedCount * this.budget
     },
     totalAmount()  {
+      if(this.coeficent)this.changeExtraBudget(this.coeficent)
       return this.totalBudget + this.extraBudget
     },
     sourceErrors () {
@@ -170,6 +173,7 @@ export default {
 
   methods: {
     changeExtraBudget(e) {
+      this.coeficent = e;
       if(e === '20%') {
         this.extraBudget = this.totalBudget * 0.2;
       } else if (e === '10%') {
